@@ -2,9 +2,11 @@
   (:require [io.pedestal.http :as http]
             [io.pedestal.http.route :as route]
             [io.pedestal.http.body-params :as body-params]
-            [ring.util.response :as ring-resp]))
+            [ring.util.response :as ring-resp]
+            [smashing-clojure.generic-service :as generic]))
 
 (defn about-page
+  "Returns: Clojure <version> - served from <endpoint>"
   [request]
   (ring-resp/response (format "Clojure %s - served from %s"
                               (clojure-version)
@@ -12,7 +14,16 @@
 
 (defn home-page
   [request]
-  (ring-resp/response "Hello World!"))
+  {:status 404 :body "The requested route is unavailable"})
+
+(defn hello-page
+  "Returns: Hello <:language>, <:name>. Query-param: ?name=<:name>&language=<:language>
+      Supported languages: es, pt, jp, en, kr, kz"
+  [request]
+  (let [name (get-in request [:query-params :name])
+        lang (get-in request [:query-params :language])
+        resp (generic/greeting name lang)]
+    {:status 200 :body resp}))
 
 ;; Defines "/" and "/about" routes with their associated :get handlers.
 ;; The interceptors defined after the verb map (e.g., {:get home-page}
@@ -21,19 +32,13 @@
 
 ;; Tabular routes
 (def routes #{["/" :get (conj common-interceptors `home-page)]
-              ["/about" :get (conj common-interceptors `about-page)]})
+              ["/about" :get (conj common-interceptors `about-page)]
+              ["/hello" :get (conj common-interceptors `hello-page)]})
 
-;; Map-based routes
+;; Map-based routes)
 ;(def routes `{"/" {:interceptors [(body-params/body-params) http/html-body]
 ;                   :get home-page
-;                   "/about" {:get about-page}}})
-
-;; Terse/Vector-based routes
-;(def routes
-;  `[[["/" {:get home-page}
-;      ^:interceptors [(body-params/body-params) http/html-body]
-;      ["/about" {:get about-page}]]]])
-
+;                  "/about" {:get about-page}]})
 
 ;; Consumed by smashing-clojure.server/create-server
 ;; See http/default-interceptors for additional options you can configure
@@ -76,4 +81,3 @@
                                         ;:key-password "password"
                                         ;:ssl-port 8443
                                         :ssl? false}})
-

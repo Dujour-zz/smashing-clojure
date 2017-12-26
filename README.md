@@ -33,7 +33,3 @@ To learn more about configuring Logback, read its [documentation](http://logback
 Once the image it built, it's cached.  To delete the image and build a new one:
 
 1. `capstan rmi smashing-clojure; capstan build`
-
-
-## Links
-* [Other examples](https://github.com/pedestal/samples)
