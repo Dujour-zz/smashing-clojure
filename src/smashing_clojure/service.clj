@@ -2,8 +2,7 @@
   (:require [io.pedestal.http :as http]
             [io.pedestal.http.route :as route]
             [io.pedestal.http.body-params :as body-params]
-            [ring.util.response :as ring-resp]
-            [smashing-clojure.generic-service :as generic]))
+            [ring.util.response :as ring-resp]))
 
 (defn about-page
   "Returns: Clojure <version> - served from <endpoint>"
@@ -16,14 +15,15 @@
   [request]
   {:status 404 :body "The requested route is unavailable"})
 
-(defn hello-page
-  "Returns: Hello <:language>, <:name>. Query-param: ?name=<:name>&language=<:language>
-      Supported languages: es, pt, jp, en, kr, kz"
+(defn login
+  "Returns: Login session and login token"
   [request]
-  (let [name (get-in request [:query-params :name])
-        lang (get-in request [:query-params :language])
-        resp (generic/greeting name lang)]
-    {:status 200 :body resp}))
+  {:status 200 :body "Logged in"})
+
+(defn login
+  "Keeps login session and login token valid"
+  [request]
+  {:status 200 :body "login valid"})
 
 ;; Defines "/" and "/about" routes with their associated :get handlers.
 ;; The interceptors defined after the verb map (e.g., {:get home-page}
@@ -33,7 +33,8 @@
 ;; Tabular routes
 (def routes #{["/" :get (conj common-interceptors `home-page)]
               ["/about" :get (conj common-interceptors `about-page)]
-              ["/hello" :get (conj common-interceptors `hello-page)]})
+              ["/login" :post (conj common-interceptors `login)]
+              ["/keep" :post (conj common-interceptors `keep)]})
 
 ;; Map-based routes)
 ;(def routes `{"/" {:interceptors [(body-params/body-params) http/html-body]
